@@ -8,13 +8,15 @@ public class PathFinder : MonoBehaviour
 
     [SerializeField]
     private GridMap gridMap;
+
+    private LabyrinthManager _labyrinthManager;
     
     // for DFS
     // private HashSet<(int i, int j)> exitsFound;
 
     public IEnumerable<(int, int)> path;
 
-    private static readonly (int i, int j)[] Dir = new (int, int)[]
+    public readonly (int i, int j)[] Dir = new (int, int)[]
     {
         (0, 1), // up
         (1, 0), // right
@@ -42,12 +44,13 @@ public class PathFinder : MonoBehaviour
     void Start()
     {
         gridMap = FindObjectOfType<GridMap>();
+        _labyrinthManager = FindObjectOfType<LabyrinthManager>();
 
         // for DFS
         // exitsFound = new HashSet<(int i, int j)>();
     }
 
-    public void GetPath()
+    public bool FindPath()
     {
         // // Debug.Log(Dfs(start.x, start.y, 0, -1, -1));
         // var found = Dfs(start.x, start.y, 0, -1, -1)
@@ -57,14 +60,16 @@ public class PathFinder : MonoBehaviour
         var (found, dist, (exitI, exitJ)) = Bfs(start.x, start.y);
         if (found)
         {
-            Debug.Log("Distance to goal: " + dist);
+            // Debug.Log("Distance to goal: " + dist);
+            _labyrinthManager.infoText.text = "Distance to goal: " + dist;
+            
             path = CreatePath(exitI, exitJ);
+            return true;
         }
-        else
-        {
-            Debug.Log("Path not found!");
+        // Debug.Log("Path not found!");
+        _labyrinthManager.infoText.text = "Path not found!";
+        return false;
         }
-    }
 
     // private bool Dfs(int i, int j, int dist, int prevI, int prevJ)
     // {
@@ -156,7 +161,7 @@ public class PathFinder : MonoBehaviour
         (int i, int j) curr = (endI, endJ);
         
         // iterate through cells from exit to start and add them to path list
-        while (curr != (start.x, start.y) || gridMap.CellOutOfBounds(curr.i, curr.j))
+        while (curr != (start.x, start.y) && !gridMap.CellOutOfBounds(curr.i, curr.j))
         {
             p.Add(curr);
             var prev = gridMap.Cells[curr.i, curr.j].previousCell;
